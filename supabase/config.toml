@@ -1,0 +1,4 @@
+project_id = "dxclbtcyzghzvvtopydk"
+ 
+ [functions.ai-resume-assistant]
+ verify_jwt = false
