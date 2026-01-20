@@ -17,12 +17,7 @@ All colors MUST be HSL.
     --popover: 0 0% 100%;
     --popover-foreground: 222.2 84% 4.9%;
 
-    /* Brand (premium purple/blue) */
-    --brand-1: 262 83% 58%; /* purple */
-    --brand-2: 217 91% 60%; /* blue */
-    --brand-3: 235 85% 65%; /* indigo */
-
-    --primary: var(--brand-1);
+    --primary: 222.2 47.4% 11.2%;
     --primary-foreground: 210 40% 98%;
 
     --secondary: 210 40% 96.1%;
@@ -42,13 +37,6 @@ All colors MUST be HSL.
     --ring: 222.2 84% 4.9%;
 
     --radius: 0.5rem;
-
-    /* Gradients (HSL only) */
-    --gradient-page: radial-gradient(1200px 600px at 20% 10%, hsl(var(--brand-1) / 0.14), transparent 60%),
-      radial-gradient(1200px 600px at 80% 20%, hsl(var(--brand-2) / 0.14), transparent 60%),
-      linear-gradient(180deg, hsl(var(--background)), hsl(var(--background)));
-    --gradient-hero: linear-gradient(135deg, hsl(var(--brand-1)), hsl(var(--brand-2)));
-    --gradient-hero-text: linear-gradient(90deg, hsl(var(--brand-1)), hsl(var(--brand-2)), hsl(var(--brand-3)));
 
     --sidebar-background: 0 0% 98%;
 
