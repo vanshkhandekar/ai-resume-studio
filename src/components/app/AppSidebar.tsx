@@ -23,22 +23,21 @@ const items = [
 ];
 
 export function AppSidebar() {
-  const { collapsed } = useSidebar();
+  const { state } = useSidebar();
   const { pathname } = useLocation();
 
-  const isActive = (path: string) => pathname === path;
-  const keepOpen = items.some((i) => isActive(i.url) || pathname.startsWith(i.url + "/"));
+  const collapsed = state === "collapsed";
 
   return (
-    <Sidebar className={collapsed ? "w-14" : "w-60"} collapsible>
+    <Sidebar collapsible="icon">
       <SidebarContent>
-        <SidebarGroup open={keepOpen}>
+        <SidebarGroup>
           <SidebarGroupLabel>Resume Builder</SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {items.map((item) => (
                 <SidebarMenuItem key={item.title}>
-                  <SidebarMenuButton asChild>
+                  <SidebarMenuButton asChild isActive={pathname === item.url}>
                     <NavLink
                       to={item.url}
                       end={item.url === "/dashboard"}
