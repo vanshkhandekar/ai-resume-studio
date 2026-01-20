@@ -30,18 +30,11 @@
          <p className="text-xl text-muted-foreground mb-8">
            Create professional resumes with AI assistance
          </p>
-           <div className="flex gap-4 justify-center">
-             <Link to="/dashboard">
-               <Button size="lg" className="text-lg px-8">
-                 Start Building Resume
-               </Button>
-             </Link>
-             <Link to="/admin">
-               <Button size="lg" variant="outline" className="text-lg px-8">
-                 Admin Login
-               </Button>
-             </Link>
-           </div>
+         <Link to="/dashboard">
+           <Button size="lg" className="text-lg px-8">
+             Start Building Resume
+           </Button>
+         </Link>
        </div>
  
        {/* Features */}
