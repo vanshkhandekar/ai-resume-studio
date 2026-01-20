@@ -2,6 +2,7 @@
    id: string;
    enabled: boolean;
    order: number;
+ // Resume section metadata
  }
  
  export interface Education {
