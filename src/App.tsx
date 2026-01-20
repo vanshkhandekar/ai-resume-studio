@@ -9,7 +9,7 @@ import Admin from "@/pages/Admin";
 import Templates from "@/pages/Templates";
 import ResumeScore from "@/pages/ResumeScore";
 import Export from "@/pages/Export";
-import NotFound from "./pages/NotFound";
+import NotFound from "@/pages/NotFound";
 
 const queryClient = new QueryClient();
 
