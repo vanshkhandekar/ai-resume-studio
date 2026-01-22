@@ -13,6 +13,7 @@ import ExportResume from "./pages/dashboard/ExportResume";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
 import PromptPage from "./pages/Prompt";
+import Index from "./pages/Index";
 
 const queryClient = new QueryClient();
 
@@ -25,18 +26,21 @@ const App = () => (
         <BrowserRouter>
           <Routes>
             <Route path="/admin" element={<Admin />} />
-            {/* App starts directly in the main interface (no landing page) */}
-            <Route path="/" element={<DashboardLayout />}>
-              <Route index element={<DashboardHome />} />
-              <Route path="create" element={<ResumeBuilder />} />
-              <Route path="templates" element={<Templates />} />
-              <Route path="score" element={<ResumeScore />} />
-              <Route path="export" element={<ExportResume />} />
-              <Route path="prompt" element={<PromptPage />} />
+            {/* Public landing page */}
+            <Route path="/" element={<Index />} />
+
+            {/* Main app */}
+            <Route element={<DashboardLayout />}>
+              <Route path="/dashboard" element={<DashboardHome />} />
+              <Route path="/create" element={<ResumeBuilder />} />
+              <Route path="/templates" element={<Templates />} />
+              <Route path="/score" element={<ResumeScore />} />
+              <Route path="/export" element={<ExportResume />} />
+              <Route path="/prompt" element={<PromptPage />} />
             </Route>
 
             {/* Backwards-compat */}
-            <Route path="/dashboard/*" element={<Navigate to="/" replace />} />
+            <Route path="/dashboard/*" element={<Navigate to="/dashboard" replace />} />
             {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
             <Route path="*" element={<NotFound />} />
           </Routes>
