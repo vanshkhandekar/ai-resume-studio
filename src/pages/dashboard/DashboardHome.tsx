@@ -16,7 +16,7 @@ export default function DashboardHome() {
           </CardHeader>
           <CardContent>
             <Button asChild className="w-full">
-              <Link to="/dashboard/create">Open Builder</Link>
+              <Link to="/create">Open Builder</Link>
             </Button>
           </CardContent>
         </Card>
@@ -27,7 +27,7 @@ export default function DashboardHome() {
           </CardHeader>
           <CardContent>
             <Button asChild variant="outline" className="w-full">
-              <Link to="/dashboard/templates">Browse Templates</Link>
+              <Link to="/templates">Browse Templates</Link>
             </Button>
           </CardContent>
         </Card>
@@ -38,7 +38,7 @@ export default function DashboardHome() {
           </CardHeader>
           <CardContent>
             <Button asChild variant="outline" className="w-full">
-              <Link to="/dashboard/export">Go to Export</Link>
+              <Link to="/export">Go to Export</Link>
             </Button>
           </CardContent>
         </Card>
