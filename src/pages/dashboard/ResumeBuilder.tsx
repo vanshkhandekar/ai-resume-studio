@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { ArrowDown, ArrowUp, Plus, Trash2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Award, Briefcase, FolderKanban, GraduationCap, Plus, Trash2, UserRound } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,6 +10,8 @@ import { Separator } from "@/components/ui/separator";
 import { supabase } from "@/integrations/supabase/client";
 import { useToast } from "@/hooks/use-toast";
 import { Link } from "react-router-dom";
+import { EmptyStateCard } from "@/components/resume/EmptyStateCard";
+import { StepProgressHeader } from "@/components/resume/StepProgressHeader";
 
 type Education = { school: string; degree: string; year: string };
 type Experience = { company: string; role: string; bullets: string };
@@ -48,10 +50,10 @@ export default function ResumeBuilder() {
   const [showExperience, setShowExperience] = useState(true);
   const [showCerts, setShowCerts] = useState(true);
 
-  const [education, setEducation] = useState<Education[]>([{ school: "", degree: "", year: "" }]);
-  const [projects, setProjects] = useState<Project[]>([{ name: "", bullets: "" }]);
-  const [experience, setExperience] = useState<Experience[]>([{ company: "", role: "", bullets: "" }]);
-  const [certs, setCerts] = useState<Certification[]>([{ name: "", org: "", year: "" }]);
+  const [education, setEducation] = useState<Education[]>([]);
+  const [projects, setProjects] = useState<Project[]>([]);
+  const [experience, setExperience] = useState<Experience[]>([]);
+  const [certs, setCerts] = useState<Certification[]>([]);
 
   const [order, setOrder] = useState<Array<"education" | "projects" | "skills" | "experience" | "certs">>([
     "education",
@@ -190,14 +192,15 @@ export default function ResumeBuilder() {
 
   return (
     <div className="mx-auto w-full max-w-6xl">
-      <div className="flex items-end justify-between gap-4">
-        <div>
-          <h1 className="text-2xl font-semibold tracking-tight">Create Resume</h1>
-          <p className="mt-1 text-muted-foreground">Step-by-step. Click Next to unlock the next section.</p>
-        </div>
-      </div>
+      <StepProgressHeader
+        title="Resume Builder"
+        stepLabel={`Step ${currentIndex + 1} of ${steps.length}`}
+        stepText={steps[currentIndex]?.label ?? ""}
+        progress={(currentIndex + 1) / steps.length}
+      />
 
-      <div className="mt-4 flex flex-wrap gap-2">
+      {/* Optional quick jump chips (hidden on mobile to match reference UI) */}
+      <div className="mt-4 hidden flex-wrap gap-2 sm:flex">
         {steps.map((s, i) => {
           const active = s.id === step;
           const canOpen = unlocked[s.id];
@@ -229,16 +232,34 @@ export default function ResumeBuilder() {
           {step === "profile" ? (
             <Card>
               <CardHeader>
-                <CardTitle className="text-lg">Profile</CardTitle>
+                <CardTitle className="text-lg">Personal Information</CardTitle>
               </CardHeader>
               <CardContent className="grid gap-4">
-                <div className="flex flex-wrap items-center gap-4">
-                  <div className="h-16 w-16 overflow-hidden rounded-full border bg-background/40">
-                    {photoDataUrl ? <img src={photoDataUrl} alt="Profile" className="h-full w-full object-cover" /> : null}
-                  </div>
-                  <div className="grid gap-2">
-                    <p className="text-sm font-medium">Profile photo</p>
-                    <Input type="file" accept="image/*" onChange={(e) => handlePhoto(e.target.files?.[0])} />
+                <p className="text-sm text-muted-foreground">Let's start with your basic details. This information appears at the top of your resume.</p>
+
+                <div className="rounded-xl border border-dashed bg-muted/20 p-5">
+                  <div className="grid place-items-center gap-3 text-center">
+                    <div className="grid h-16 w-16 place-items-center rounded-full border bg-background">
+                      {photoDataUrl ? (
+                        <img src={photoDataUrl} alt="Profile" className="h-16 w-16 rounded-full object-cover" />
+                      ) : (
+                        <UserRound className="h-7 w-7 text-muted-foreground" />
+                      )}
+                    </div>
+                    <div className="grid gap-1">
+                      <Button variant="outline" asChild>
+                        <label className="cursor-pointer">
+                          Upload Photo
+                          <input
+                            type="file"
+                            accept="image/*"
+                            onChange={(e) => handlePhoto(e.target.files?.[0])}
+                            className="sr-only"
+                          />
+                        </label>
+                      </Button>
+                      <p className="text-xs text-muted-foreground">Optional · Max 5MB (JPG, PNG)</p>
+                    </div>
                   </div>
                 </div>
 
@@ -295,50 +316,65 @@ export default function ResumeBuilder() {
                 />
               </CardHeader>
               <CardContent className="grid gap-4">
-                {education.map((ed, idx) => (
-                  <div key={idx} className="rounded-md border bg-card p-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-medium">Entry {idx + 1}</p>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setEducation((p) => p.filter((_, i) => i !== idx))}
-                        disabled={education.length === 1}
-                        aria-label="Remove education"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <div className="mt-3 grid gap-3">
-                      <Input
-                        placeholder="College / School"
-                        value={ed.school}
-                        onChange={(e) =>
-                          setEducation((p) => p.map((x, i) => (i === idx ? { ...x, school: e.target.value } : x)))
-                        }
-                      />
-                      <div className="grid gap-3 sm:grid-cols-2">
-                        <Input
-                          placeholder="Degree"
-                          value={ed.degree}
-                          onChange={(e) =>
-                            setEducation((p) => p.map((x, i) => (i === idx ? { ...x, degree: e.target.value } : x)))
-                          }
-                        />
-                        <Input
-                          placeholder="Year"
-                          value={ed.year}
-                          onChange={(e) =>
-                            setEducation((p) => p.map((x, i) => (i === idx ? { ...x, year: e.target.value } : x)))
-                          }
-                        />
+                {education.length === 0 ? (
+                  <EmptyStateCard
+                    title="No education added yet"
+                    description="Add your educational qualifications to strengthen your resume."
+                    icon={<GraduationCap className="h-7 w-7 text-muted-foreground" />}
+                    actionLabel="Add Education"
+                    onAction={() => setEducation([{ school: "", degree: "", year: "" }])}
+                  />
+                ) : (
+                  <>
+                    {education.map((ed, idx) => (
+                      <div key={idx} className="rounded-xl border bg-card p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-sm font-medium">Education {idx + 1}</p>
+                          <Button
+                            variant="outline"
+                            size="icon"
+                            onClick={() => setEducation((p) => p.filter((_, i) => i !== idx))}
+                            aria-label="Remove education"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                        <div className="mt-3 grid gap-3">
+                          <Input
+                            placeholder="Institution Name"
+                            value={ed.school}
+                            onChange={(e) =>
+                              setEducation((p) => p.map((x, i) => (i === idx ? { ...x, school: e.target.value } : x)))
+                            }
+                          />
+                          <Input
+                            placeholder="Degree"
+                            value={ed.degree}
+                            onChange={(e) =>
+                              setEducation((p) => p.map((x, i) => (i === idx ? { ...x, degree: e.target.value } : x)))
+                            }
+                          />
+                          <div className="grid gap-3 sm:grid-cols-2">
+                            <Input
+                              placeholder="Start / End Year"
+                              value={ed.year}
+                              onChange={(e) =>
+                                setEducation((p) => p.map((x, i) => (i === idx ? { ...x, year: e.target.value } : x)))
+                              }
+                            />
+                            <Input placeholder="GPA (Optional)" />
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                ))}
-                <Button variant="outline" onClick={() => setEducation((p) => [...p, { school: "", degree: "", year: "" }])}>
-                  <Plus className="mr-2 h-4 w-4" /> Add Education
-                </Button>
+                    ))}
+                    <Button
+                      variant="outline"
+                      onClick={() => setEducation((p) => [...p, { school: "", degree: "", year: "" }])}
+                    >
+                      <Plus className="mr-2 h-4 w-4" /> Add Another Education
+                    </Button>
+                  </>
+                )}
               </CardContent>
             </Card>
           ) : null}
@@ -355,64 +391,74 @@ export default function ResumeBuilder() {
                 />
               </CardHeader>
               <CardContent className="grid gap-4">
-                {projects.map((p, idx) => (
-                  <div key={idx} className="rounded-md border bg-card p-4">
-                    <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-medium">Entry {idx + 1}</p>
-                      <Button
-                        variant="outline"
-                        size="icon"
-                        onClick={() => setProjects((pp) => pp.filter((_, i) => i !== idx))}
-                        disabled={projects.length === 1}
-                        aria-label="Remove project"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                      </Button>
-                    </div>
-                    <div className="mt-3 grid gap-3">
-                      <Input
-                        placeholder="Project Name"
-                        value={p.name}
-                        onChange={(e) =>
-                          setProjects((pp) => pp.map((x, i) => (i === idx ? { ...x, name: e.target.value } : x)))
-                        }
-                      />
-
-                      <div className="grid gap-2">
-                        <div className="flex flex-wrap items-center justify-between gap-2">
-                          <p className="text-sm font-medium">Description / Bullets</p>
+                {projects.length === 0 ? (
+                  <EmptyStateCard
+                    title="No projects added yet"
+                    description="Add projects to demonstrate your practical skills."
+                    icon={<FolderKanban className="h-7 w-7 text-muted-foreground" />}
+                    actionLabel="Add Project"
+                    onAction={() => setProjects([{ name: "", bullets: "" }])}
+                  />
+                ) : (
+                  <>
+                    {projects.map((p, idx) => (
+                      <div key={idx} className="rounded-xl border bg-card p-4">
+                        <div className="flex items-center justify-between gap-3">
+                          <p className="text-sm font-medium">Project {idx + 1}</p>
                           <Button
                             variant="outline"
-                            size="sm"
-                            disabled={aiBusy === `project_${idx}`}
-                            onClick={() =>
-                              aiGenerate({
-                                key: `project_${idx}`,
-                                prompt: `Write 6–8 lines (no special symbols) as ATS-friendly bullet points (one per line) for a resume project named: ${p.name || "My Project"}.`,
-                                onApply: (t) =>
-                                  setProjects((pp) => pp.map((x, i) => (i === idx ? { ...x, bullets: t } : x))),
-                              })
-                            }
+                            size="icon"
+                            onClick={() => setProjects((pp) => pp.filter((_, i) => i !== idx))}
+                            aria-label="Remove project"
                           >
-                            {aiBusy === `project_${idx}` ? "Generating..." : "AI Generate"}
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
-                        <Textarea
-                          placeholder="Bullets (one per line)"
-                          value={p.bullets}
-                          onChange={(e) =>
-                            setProjects((pp) => pp.map((x, i) => (i === idx ? { ...x, bullets: e.target.value } : x)))
-                          }
-                          className="min-h-[110px]"
-                        />
-                        <p className="text-xs text-muted-foreground">Manual or AI — both supported.</p>
+                        <div className="mt-3 grid gap-3">
+                          <Input
+                            placeholder="Project Name"
+                            value={p.name}
+                            onChange={(e) =>
+                              setProjects((pp) => pp.map((x, i) => (i === idx ? { ...x, name: e.target.value } : x)))
+                            }
+                          />
+
+                          <div className="grid gap-2">
+                            <div className="flex flex-wrap items-center justify-between gap-2">
+                              <p className="text-sm font-medium">Description</p>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                disabled={aiBusy === `project_${idx}`}
+                                onClick={() =>
+                                  aiGenerate({
+                                    key: `project_${idx}`,
+                                    prompt: `Write 6–8 lines (no special symbols) as ATS-friendly bullet points (one per line) for a resume project named: ${p.name || "My Project"}.`,
+                                    onApply: (t) =>
+                                      setProjects((pp) => pp.map((x, i) => (i === idx ? { ...x, bullets: t } : x))),
+                                  })
+                                }
+                              >
+                                {aiBusy === `project_${idx}` ? "Generating..." : "AI Generate"}
+                              </Button>
+                            </div>
+                            <Textarea
+                              placeholder="Describe your project, its purpose, and your contributions..."
+                              value={p.bullets}
+                              onChange={(e) =>
+                                setProjects((pp) => pp.map((x, i) => (i === idx ? { ...x, bullets: e.target.value } : x)))
+                              }
+                              className="min-h-[130px]"
+                            />
+                          </div>
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                ))}
-                <Button variant="outline" onClick={() => setProjects((p) => [...p, { name: "", bullets: "" }])}>
-                  <Plus className="mr-2 h-4 w-4" /> Add Project
-                </Button>
+                    ))}
+                    <Button variant="outline" onClick={() => setProjects((p) => [...p, { name: "", bullets: "" }])}>
+                      <Plus className="mr-2 h-4 w-4" /> Add Another Project
+                    </Button>
+                  </>
+                )}
               </CardContent>
             </Card>
           ) : null}
@@ -468,15 +514,24 @@ export default function ResumeBuilder() {
                 />
               </CardHeader>
               <CardContent className="grid gap-4">
-                {experience.map((ex, idx) => (
-                  <div key={idx} className="rounded-md border bg-card p-4">
+                {experience.length === 0 ? (
+                  <EmptyStateCard
+                    title="No experience added yet"
+                    description="Add internships, jobs, or freelancing work to strengthen your resume."
+                    icon={<Briefcase className="h-7 w-7 text-muted-foreground" />}
+                    actionLabel="Add Experience"
+                    onAction={() => setExperience([{ company: "", role: "", bullets: "" }])}
+                  />
+                ) : (
+                  <>
+                    {experience.map((ex, idx) => (
+                      <div key={idx} className="rounded-xl border bg-card p-4">
                     <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-medium">Entry {idx + 1}</p>
+                      <p className="text-sm font-medium">Experience {idx + 1}</p>
                       <Button
                         variant="outline"
                         size="icon"
                         onClick={() => setExperience((p) => p.filter((_, i) => i !== idx))}
-                        disabled={experience.length === 1}
                         aria-label="Remove experience"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -530,11 +585,16 @@ export default function ResumeBuilder() {
                         <p className="text-xs text-muted-foreground">Manual or AI — both supported.</p>
                       </div>
                     </div>
-                  </div>
-                ))}
-                <Button variant="outline" onClick={() => setExperience((p) => [...p, { company: "", role: "", bullets: "" }])}>
-                  <Plus className="mr-2 h-4 w-4" /> Add Experience
-                </Button>
+                      </div>
+                    ))}
+                    <Button
+                      variant="outline"
+                      onClick={() => setExperience((p) => [...p, { company: "", role: "", bullets: "" }])}
+                    >
+                      <Plus className="mr-2 h-4 w-4" /> Add Another Experience
+                    </Button>
+                  </>
+                )}
               </CardContent>
             </Card>
           ) : null}
@@ -551,15 +611,24 @@ export default function ResumeBuilder() {
                 />
               </CardHeader>
               <CardContent className="grid gap-4">
-                {certs.map((c, idx) => (
-                  <div key={idx} className="rounded-md border bg-card p-4">
+                {certs.length === 0 ? (
+                  <EmptyStateCard
+                    title="No certifications added yet"
+                    description="Add certifications to show verified skills and achievements."
+                    icon={<Award className="h-7 w-7 text-muted-foreground" />}
+                    actionLabel="Add Certification"
+                    onAction={() => setCerts([{ name: "", org: "", year: "" }])}
+                  />
+                ) : (
+                  <>
+                    {certs.map((c, idx) => (
+                      <div key={idx} className="rounded-xl border bg-card p-4">
                     <div className="flex items-center justify-between gap-3">
-                      <p className="text-sm font-medium">Entry {idx + 1}</p>
+                      <p className="text-sm font-medium">Certification {idx + 1}</p>
                       <Button
                         variant="outline"
                         size="icon"
                         onClick={() => setCerts((p) => p.filter((_, i) => i !== idx))}
-                        disabled={certs.length === 1}
                         aria-label="Remove certification"
                       >
                         <Trash2 className="h-4 w-4" />
@@ -590,11 +659,13 @@ export default function ResumeBuilder() {
                         className="sm:col-span-3"
                       />
                     </div>
-                  </div>
-                ))}
-                <Button variant="outline" onClick={() => setCerts((p) => [...p, { name: "", org: "", year: "" }])}>
-                  <Plus className="mr-2 h-4 w-4" /> Add Certification
-                </Button>
+                      </div>
+                    ))}
+                    <Button variant="outline" onClick={() => setCerts((p) => [...p, { name: "", org: "", year: "" }])}>
+                      <Plus className="mr-2 h-4 w-4" /> Add Another Certification
+                    </Button>
+                  </>
+                )}
               </CardContent>
             </Card>
           ) : null}
@@ -613,13 +684,16 @@ export default function ResumeBuilder() {
             </Card>
           ) : null}
 
-          <div className="flex items-center justify-between">
-            <Button variant="outline" onClick={goBack} disabled={currentIndex === 0}>
-              Back
-            </Button>
-            <Button onClick={unlockAndGoNext} disabled={currentIndex === steps.length - 1}>
-              Next
-            </Button>
+          {/* Mobile-like bottom bar navigation */}
+          <div className="sticky bottom-0 z-10 -mx-1 mt-2 border-t bg-background/80 px-1 py-3 backdrop-blur lg:static lg:mx-0 lg:border-t-0 lg:bg-transparent lg:px-0 lg:py-0 lg:backdrop-blur-0">
+            <div className="flex items-center justify-between gap-3">
+              <Button variant="outline" className="h-12 flex-1" onClick={goBack} disabled={currentIndex === 0}>
+                Previous
+              </Button>
+              <Button className="h-12 flex-1" onClick={unlockAndGoNext} disabled={currentIndex === steps.length - 1}>
+                Next
+              </Button>
+            </div>
           </div>
         </div>
 
