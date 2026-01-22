@@ -8,8 +8,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { generateLicenseKey, getLicenseSecrets, setLicenseSecrets } from "@/lib/license";
 import { useToast } from "@/hooks/use-toast";
 
-const ADMIN_USER = "admin";
-const ADMIN_PASS = "admin123";
+const ADMIN_USER = "vansh";
+const ADMIN_PASS = "Philip99";
 const SESSION_KEY = "arb_admin_logged_in";
 
 export default function Admin() {
@@ -58,7 +58,7 @@ export default function Admin() {
               <Input value={user} onChange={(e) => setUser(e.target.value)} placeholder="Username" />
               <Input value={pass} onChange={(e) => setPass(e.target.value)} placeholder="Password" type="password" />
               <Button onClick={login}>Login</Button>
-              <p className="text-xs text-muted-foreground">Demo: admin / admin123</p>
+              <p className="text-xs text-muted-foreground">Demo: vansh / Philip99</p>
             </CardContent>
           </Card>
         </div>
