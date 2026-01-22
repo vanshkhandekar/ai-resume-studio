@@ -39,6 +39,7 @@ export default function ResumeBuilder() {
   const [email, setEmail] = useState("");
   const [phone, setPhone] = useState("");
   const [summary, setSummary] = useState("");
+  const [summaryAiInput, setSummaryAiInput] = useState("");
   const [photoDataUrl, setPhotoDataUrl] = useState<string>("");
   const [skills, setSkills] = useState<string>("");
 
@@ -275,30 +276,52 @@ export default function ResumeBuilder() {
                 </div>
 
                 <div className="grid gap-2">
-                  <div className="flex flex-wrap items-center justify-between gap-2">
-                    <p className="text-sm font-medium">Professional Summary</p>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      disabled={aiBusy === "summary"}
-                      onClick={() =>
-                        aiGenerate({
-                          key: "summary",
-                          prompt: `Write a professional resume summary in 6–8 lines for: ${name || "a candidate"}. Headline: ${headline}.`,
-                          onApply: (t) => setSummary(t),
-                        })
-                      }
-                    >
-                      {aiBusy === "summary" ? "Generating..." : "AI Generate"}
-                    </Button>
+                  <p className="text-sm font-medium">Professional Summary</p>
+                  <p className="text-sm text-muted-foreground">
+                    AI optional hai: upar AI se generate karo, ya niche manual apna likho.
+                  </p>
+
+                  {/* AI box */}
+                  <div className="grid gap-2 rounded-xl border bg-muted/20 p-3">
+                    <div className="flex flex-wrap items-center justify-between gap-2">
+                      <p className="text-sm font-medium">Generate with AI</p>
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        disabled={aiBusy === "summary"}
+                        onClick={() =>
+                          aiGenerate({
+                            key: "summary",
+                            prompt:
+                              summaryAiInput.trim() ||
+                              `Write a professional resume summary in 6–8 lines for: ${name || "a candidate"}. Headline: ${headline}.`,
+                            onApply: (t) => setSummary(t),
+                          })
+                        }
+                      >
+                        {aiBusy === "summary" ? "Generating..." : "Generate"}
+                      </Button>
+                    </div>
+                    <Textarea
+                      placeholder="AI ke liye details likho (role, skills, goal). Example: BCA student, frontend, HTML CSS JS, fresher, ATS friendly."
+                      value={summaryAiInput}
+                      onChange={(e) => setSummaryAiInput(e.target.value)}
+                      className="min-h-[90px]"
+                    />
+                    <p className="text-xs text-muted-foreground">Generate karne ke baad output niche manual box me aa jayega.</p>
                   </div>
-                  <Textarea
-                    placeholder="Professional Summary (2–4 lines)"
-                    value={summary}
-                    onChange={(e) => setSummary(e.target.value)}
-                    className="min-h-[110px]"
-                  />
-                  <p className="text-xs text-muted-foreground">You can always edit manually after AI generates.</p>
+
+                  {/* Manual box */}
+                  <div className="grid gap-2">
+                    <p className="text-sm font-medium">Write manually</p>
+                    <Textarea
+                      placeholder="Professional Summary (2–4 lines)"
+                      value={summary}
+                      onChange={(e) => setSummary(e.target.value)}
+                      className="min-h-[120px]"
+                    />
+                    <p className="text-xs text-muted-foreground">AI use na karna ho to yahin directly likho.</p>
+                  </div>
                 </div>
               </CardContent>
             </Card>
