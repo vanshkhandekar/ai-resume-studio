@@ -1,4 +1,4 @@
-import { LayoutDashboard, FileText, LayoutTemplate, Sparkles, Download } from "lucide-react";
+import { LayoutDashboard, FileText, LayoutTemplate, Sparkles, Download, Shield } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { NavLink } from "@/components/NavLink";
 
@@ -15,11 +15,12 @@ import {
 } from "@/components/ui/sidebar";
 
 const items = [
-  { title: "Dashboard", url: "/dashboard", icon: LayoutDashboard },
-  { title: "Create Resume", url: "/dashboard/create", icon: FileText },
-  { title: "Templates", url: "/dashboard/templates", icon: LayoutTemplate },
-  { title: "Resume Score", url: "/dashboard/score", icon: Sparkles },
-  { title: "Export", url: "/dashboard/export", icon: Download },
+  { title: "Dashboard", url: "/", icon: LayoutDashboard },
+  { title: "Create Resume", url: "/create", icon: FileText },
+  { title: "Templates", url: "/templates", icon: LayoutTemplate },
+  { title: "Resume Score", url: "/score", icon: Sparkles },
+  { title: "Export", url: "/export", icon: Download },
+  { title: "Admin Panel", url: "/admin", icon: Shield },
 ];
 
 export function AppSidebar() {
@@ -40,7 +41,7 @@ export function AppSidebar() {
                   <SidebarMenuButton asChild isActive={pathname === item.url}>
                     <NavLink
                       to={item.url}
-                      end={item.url === "/dashboard"}
+                      end={item.url === "/"}
                       className="flex items-center gap-2 rounded-md px-2 py-2 text-sm hover:bg-muted/50"
                       activeClassName="bg-muted text-foreground font-medium"
                     >

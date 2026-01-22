@@ -1,10 +1,8 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { isPremiumActive } from "@/lib/license";
 
 export default function ExportResume() {
-  const premium = useMemo(() => isPremiumActive(), []);
   const [choice, setChoice] = useState<"manual" | "ai">("manual");
 
   return (
@@ -41,13 +39,10 @@ export default function ExportResume() {
       <Card className="mt-6">
         <CardHeader>
           <CardTitle>Download</CardTitle>
-          <CardDescription>PDF is available for everyone. DOCX is Premium only.</CardDescription>
+          <CardDescription>PDF export is available for everyone.</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-3 sm:flex-row">
           <Button onClick={() => window.print()}>Export PDF (A4)</Button>
-          <Button variant="outline" disabled={!premium} title={!premium ? "Premium required" : ""}>
-            Export DOCX (Premium)
-          </Button>
           <p className="text-sm text-muted-foreground sm:self-center">Selected: {choice === "manual" ? "Manual" : "AI Enhanced"}</p>
         </CardContent>
       </Card>
