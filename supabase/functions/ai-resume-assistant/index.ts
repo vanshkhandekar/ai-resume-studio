@@ -10,7 +10,7 @@
      return new Response(null, { headers: corsHeaders });
    }
  
-   try {
+    try {
      const { prompt, context } = await req.json();
      const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
  
@@ -18,17 +18,67 @@
        throw new Error("LOVABLE_API_KEY is not configured");
      }
  
-     const systemPrompt = `You are a professional resume writing assistant. 
- 
- STRICT RULES:
- - Generate EXACTLY 6–8 lines (sentences) only
- - Use professional, human-written tone
- - NO special symbols, NO emojis, NO bullet points
- - Be friendly but concise
- - Write in paragraph form
- - Focus on achievements and impact
- 
- User context: ${context || "General resume assistance"}`;
+      const systemPrompt = `You are a professional resume writing assistant.
+
+STRICT OUTPUT RULES:
+- Write BETWEEN 6 and 10 short lines max (each line = one short sentence)
+- Keep it simple, natural, and human-written (do not sound like AI)
+- Easy English, resume-ready, ATS-friendly
+- No bullet points, no numbering, no emojis
+- Do NOT use these characters: * " ' : !
+- Avoid filler and repetition; keep it concise
+
+CONTENT RULES:
+- Focus on achievements, responsibilities, impact, and skills
+- Prefer action verbs and measurable outcomes when possible
+- If the user is a fresher/student, keep it realistic and not exaggerated
+
+User context: ${context || "General resume assistance"}`;
+
+      const sanitize = (raw: string) => {
+        const banned = /[\*"':!]/g;
+        const cleaned = String(raw || "")
+          .replace(/\r/g, "")
+          .replace(banned, "")
+          .replace(/\s+\n/g, "\n")
+          .replace(/\n\s+/g, "\n")
+          .replace(/[ \t]+/g, " ")
+          .trim();
+
+        // Try to keep "lines" behavior even if model returned a paragraph
+        let lines = cleaned
+          .split("\n")
+          .map((l) => l.trim())
+          .filter(Boolean);
+
+        if (lines.length <= 1) {
+          const sentences = cleaned
+            .split(/(?<=[.!?])\s+/)
+            .map((s) => s.replace(/[.!?]+$/g, "").trim())
+            .filter(Boolean);
+          lines = sentences.length ? sentences : lines;
+        }
+
+        // Hard cap: 10 lines
+        if (lines.length > 10) lines = lines.slice(0, 10);
+
+        // Soft minimum: if model produced too many tiny fragments, merge small lines
+        const merged: string[] = [];
+        for (const l of lines) {
+          if (!merged.length) {
+            merged.push(l);
+            continue;
+          }
+          const prev = merged[merged.length - 1] || "";
+          if (prev.length < 35 && l.length < 35 && merged.length < 10) {
+            merged[merged.length - 1] = `${prev} ${l}`.trim();
+          } else {
+            merged.push(l);
+          }
+        }
+
+        return merged.slice(0, 10).join("\n");
+      };
  
      const response = await fetch("https://ai.gateway.lovable.dev/v1/chat/completions", {
        method: "POST",
@@ -77,7 +127,7 @@
      }
  
      const data = await response.json();
-     const content = data.choices?.[0]?.message?.content || "";
+      const content = sanitize(data.choices?.[0]?.message?.content || "");
  
      return new Response(
        JSON.stringify({ content }),
