@@ -2,3 +2,6 @@ project_id = "dxclbtcyzghzvvtopydk"
  
  [functions.ai-resume-assistant]
  verify_jwt = false
+
+[functions.admin-bootstrap]
+verify_jwt = true
