@@ -10,6 +10,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
+import { ModeToggle } from "@/components/theme/ModeToggle";
  
  export default function Index() {
   return (
@@ -18,7 +19,10 @@ import {
       <header className="px-4 pt-8">
         <Card className="mx-auto w-full max-w-5xl">
           <CardHeader className="text-left">
-            <CardTitle className="text-2xl">Resume Maker (AI-Based Application)</CardTitle>
+            <div className="flex items-start justify-between gap-4">
+              <CardTitle className="text-2xl">Resume GPT (AI-Based Application)</CardTitle>
+              <ModeToggle />
+            </div>
             <CardDescription>
               <div className="mt-4 grid gap-3 md:grid-cols-2">
                 <div>
@@ -44,7 +48,7 @@ import {
         <section className="px-4 py-14">
           <div className="mx-auto grid w-full max-w-5xl gap-10 md:grid-cols-2 md:items-center">
             <div className="text-left">
-              <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">AI Resume Builder</h1>
+              <h1 className="text-4xl font-semibold tracking-tight md:text-5xl">Resume GPT</h1>
               <p className="mt-4 text-lg text-muted-foreground">
                 Build a clean, recruiter-ready resume with manual editing + optional AI help—no sign-in, no tracking.
               </p>
@@ -176,7 +180,7 @@ import {
               </DialogTrigger>
               <DialogContent className="max-w-3xl">
                 <DialogHeader>
-                  <DialogTitle>Resume Maker (AI-Based Application)</DialogTitle>
+                  <DialogTitle>Resume GPT (AI-Based Application)</DialogTitle>
                   <DialogDescription>Academic project details (BCA 3rd Year).</DialogDescription>
                 </DialogHeader>
                 <Accordion type="single" collapsible className="w-full">
