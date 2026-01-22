@@ -1,36 +1,109 @@
-import { useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import { addMonths } from "date-fns";
 
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { generateLicenseKey, getLicenseSecrets, setLicenseSecrets } from "@/lib/license";
 import { useToast } from "@/hooks/use-toast";
-
-const ADMIN_USER = "vansh";
-const ADMIN_PASS = "Philip99";
-const SESSION_KEY = "arb_admin_logged_in";
+import { AdminAuthCard } from "@/components/admin/AdminAuthCard";
+import { AdminSettingsCard } from "@/components/admin/AdminSettingsCard";
+import { GeminiKeysCard } from "@/components/admin/GeminiKeysCard";
 
 export default function Admin() {
   const { toast } = useToast();
-  const loggedIn = useMemo(() => sessionStorage.getItem(SESSION_KEY) === "1", []);
-  const [isAuthed, setIsAuthed] = useState(loggedIn);
-  const [user, setUser] = useState("");
-  const [pass, setPass] = useState("");
+  const [sessionChecked, setSessionChecked] = useState(false);
+  const [session, setSession] = useState<Awaited<ReturnType<typeof supabase.auth.getSession>>["data"]["session"]>(
+    null,
+  );
+  const [authBusy, setAuthBusy] = useState(false);
+  const [isAdmin, setIsAdmin] = useState<boolean | null>(null);
+  const [bootBusy, setBootBusy] = useState(false);
 
   const [version, setVersion] = useState(getLicenseSecrets().version);
   const [secret, setSecret] = useState(getLicenseSecrets().secret);
   const [generated, setGenerated] = useState("");
 
-  const login = () => {
-    if (user === ADMIN_USER && pass === ADMIN_PASS) {
-      sessionStorage.setItem(SESSION_KEY, "1");
-      setIsAuthed(true);
-      toast({ title: "Admin login", description: "Logged in successfully." });
+  const refreshAdmin = async () => {
+    const { data, error } = await supabase.rpc("is_admin");
+    if (error) {
+      setIsAdmin(false);
       return;
     }
-    toast({ variant: "destructive", title: "Login failed", description: "Invalid credentials." });
+    setIsAdmin(Boolean(data));
+  };
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      if (!mounted) return;
+      setSession(data.session);
+      setSessionChecked(true);
+    })();
+
+    const { data: sub } = supabase.auth.onAuthStateChange((_event, next) => {
+      setSession(next);
+    });
+
+    return () => {
+      mounted = false;
+      sub.subscription.unsubscribe();
+    };
+  }, []);
+
+  useEffect(() => {
+    if (!session) {
+      setIsAdmin(null);
+      return;
+    }
+    void refreshAdmin();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.user?.id]);
+
+  const login = async (email: string, password: string) => {
+    setAuthBusy(true);
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim(), password });
+    setAuthBusy(false);
+    if (error) toast({ variant: "destructive", title: "Login failed", description: error.message });
+  };
+
+  const signup = async (email: string, password: string) => {
+    setAuthBusy(true);
+    const { error } = await supabase.auth.signUp({ email: email.trim(), password });
+    setAuthBusy(false);
+    if (error) {
+      toast({ variant: "destructive", title: "Signup failed", description: error.message });
+      return;
+    }
+    toast({ title: "Account created", description: "Now login using the same email and password." });
+  };
+
+  const logout = async () => {
+    await supabase.auth.signOut();
+    setIsAdmin(null);
+  };
+
+  const bootstrapMe = async () => {
+    if (!session) return;
+    setBootBusy(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("admin-bootstrap", { body: {} });
+      if (error) throw error;
+      if (data?.error) {
+        toast({ variant: "destructive", title: "Bootstrap failed", description: data.message || data.error });
+        return;
+      }
+      toast({ title: "Admin enabled", description: "This account is now admin." });
+      await refreshAdmin();
+    } catch (e) {
+      toast({ variant: "destructive", title: "Bootstrap failed", description: e instanceof Error ? e.message : "" });
+    } finally {
+      setBootBusy(false);
+    }
   };
 
   const rotate = () => {
@@ -45,22 +118,26 @@ export default function Admin() {
     toast({ title: "Key generated", description: `${months} month license created.` });
   };
 
-  if (!isAuthed) {
+  if (!sessionChecked) {
     return (
       <div className="min-h-screen bg-background p-6">
         <div className="mx-auto w-full max-w-md">
           <Card>
             <CardHeader>
-              <CardTitle>Admin Login</CardTitle>
-              <CardDescription>Frontend-only demo login for college viva.</CardDescription>
+              <CardTitle>Admin</CardTitle>
+              <CardDescription>Loading…</CardDescription>
             </CardHeader>
-            <CardContent className="grid gap-3">
-              <Input value={user} onChange={(e) => setUser(e.target.value)} placeholder="Username" />
-              <Input value={pass} onChange={(e) => setPass(e.target.value)} placeholder="Password" type="password" />
-              <Button onClick={login}>Login</Button>
-              <p className="text-xs text-muted-foreground">Demo: vansh / Philip99</p>
-            </CardContent>
           </Card>
+        </div>
+      </div>
+    );
+  }
+
+  if (!session) {
+    return (
+      <div className="min-h-screen bg-background p-6">
+        <div className="mx-auto w-full max-w-md">
+          <AdminAuthCard onLogin={login} onSignup={signup} busy={authBusy} />
         </div>
       </div>
     );
@@ -69,44 +146,98 @@ export default function Admin() {
   return (
     <div className="min-h-screen bg-background p-6">
       <div className="mx-auto w-full max-w-5xl">
-        <h1 className="text-2xl font-semibold tracking-tight">Admin Panel</h1>
-        <p className="mt-1 text-muted-foreground">Generate license keys, rotate secrets (client-only demo).</p>
-
-        <div className="mt-6 grid gap-6 md:grid-cols-2">
-          <Card>
-            <CardHeader>
-              <CardTitle>License Secret Rotation</CardTitle>
-              <CardDescription>Versioned secret (V1, V2...) stored locally for validation.</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-3">
-              <Input value={version} onChange={(e) => setVersion(e.target.value)} placeholder="Version (e.g., V1)" />
-              <Input value={secret} onChange={(e) => setSecret(e.target.value)} placeholder="Secret" />
-              <Button onClick={rotate}>Save / Rotate</Button>
-              <p className="text-xs text-muted-foreground">Note: In a real SaaS this would be server-managed; for this project it is demo-only.</p>
-            </CardContent>
-          </Card>
-
-          <Card>
-            <CardHeader>
-              <CardTitle>Generate License Keys</CardTitle>
-              <CardDescription>Time-based keys: 1 / 2 / 3 months</CardDescription>
-            </CardHeader>
-            <CardContent className="grid gap-3">
-              <div className="flex flex-wrap gap-2">
-                <Button variant="outline" onClick={() => void makeKey(1)}>
-                  1 Month
-                </Button>
-                <Button variant="outline" onClick={() => void makeKey(2)}>
-                  2 Months
-                </Button>
-                <Button variant="outline" onClick={() => void makeKey(3)}>
-                  3 Months
-                </Button>
-              </div>
-              <Textarea value={generated} readOnly placeholder="Generated key will appear here" className="min-h-[120px]" />
-            </CardContent>
-          </Card>
+        <div className="flex flex-col gap-2 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <h1 className="text-2xl font-semibold tracking-tight">Admin Panel</h1>
+            <p className="mt-1 text-muted-foreground">Yahin se baadme API keys bhi add kar sakte ho.</p>
+          </div>
+          <Button variant="outline" onClick={() => void logout()}>
+            Logout
+          </Button>
         </div>
+
+        {isAdmin === false && (
+          <div className="mt-6">
+            <Card>
+              <CardHeader>
+                <CardTitle>Admin Access Required</CardTitle>
+                <CardDescription>
+                  Agar abhi tak koi admin nahi bana hai, toh one-time bootstrap se yeh account admin ban jayega.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <Button onClick={() => void bootstrapMe()} disabled={bootBusy}>
+                  {bootBusy ? "Enabling…" : "Make me Admin"}
+                </Button>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {isAdmin && (
+          <div className="mt-6">
+            <Tabs defaultValue="ai" className="w-full">
+              <TabsList className="grid w-full grid-cols-3">
+                <TabsTrigger value="ai">AI Settings</TabsTrigger>
+                <TabsTrigger value="keys">API Keys</TabsTrigger>
+                <TabsTrigger value="license">License (Demo)</TabsTrigger>
+              </TabsList>
+
+              <TabsContent value="ai" className="mt-6">
+                <AdminSettingsCard />
+              </TabsContent>
+
+              <TabsContent value="keys" className="mt-6">
+                <GeminiKeysCard />
+              </TabsContent>
+
+              <TabsContent value="license" className="mt-6">
+                <div className="grid gap-6 md:grid-cols-2">
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>License Secret Rotation</CardTitle>
+                      <CardDescription>Local-only demo (device storage).</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid gap-3">
+                      <Input value={version} onChange={(e) => setVersion(e.target.value)} placeholder="Version (e.g., V1)" />
+                      <Input value={secret} onChange={(e) => setSecret(e.target.value)} placeholder="Secret" />
+                      <Button onClick={rotate}>Save / Rotate</Button>
+                      <p className="text-xs text-muted-foreground">
+                        Note: Real production me yeh server-managed hota; yahan demo-only.
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Generate License Keys</CardTitle>
+                      <CardDescription>Time-based keys: 1 / 2 / 3 months</CardDescription>
+                    </CardHeader>
+                    <CardContent className="grid gap-3">
+                      <div className="flex flex-wrap gap-2">
+                        <Button variant="outline" onClick={() => void makeKey(1)}>
+                          1 Month
+                        </Button>
+                        <Button variant="outline" onClick={() => void makeKey(2)}>
+                          2 Months
+                        </Button>
+                        <Button variant="outline" onClick={() => void makeKey(3)}>
+                          3 Months
+                        </Button>
+                      </div>
+                      <Textarea
+                        value={generated}
+                        readOnly
+                        placeholder="Generated key will appear here"
+                        className="min-h-[120px]"
+                      />
+                    </CardContent>
+                  </Card>
+                </div>
+              </TabsContent>
+            </Tabs>
+          </div>
+        )}
       </div>
     </div>
   );
