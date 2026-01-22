@@ -12,6 +12,7 @@ import ResumeScore from "./pages/dashboard/ResumeScore";
 import ExportResume from "./pages/dashboard/ExportResume";
 import Admin from "./pages/Admin";
 import NotFound from "./pages/NotFound";
+import PromptPage from "./pages/Prompt";
 
 const queryClient = new QueryClient();
 
@@ -31,6 +32,7 @@ const App = () => (
               <Route path="templates" element={<Templates />} />
               <Route path="score" element={<ResumeScore />} />
               <Route path="export" element={<ExportResume />} />
+              <Route path="prompt" element={<PromptPage />} />
             </Route>
 
             {/* Backwards-compat */}

@@ -1,4 +1,4 @@
-import { LayoutDashboard, FileText, LayoutTemplate, Sparkles, Download, Shield } from "lucide-react";
+import { LayoutDashboard, FileText, LayoutTemplate, Sparkles, Download, Shield, ClipboardCopy } from "lucide-react";
 import { useLocation } from "react-router-dom";
 import { NavLink } from "@/components/NavLink";
 
@@ -20,6 +20,7 @@ const items = [
   { title: "Templates", url: "/templates", icon: LayoutTemplate },
   { title: "Resume Score", url: "/score", icon: Sparkles },
   { title: "Export", url: "/export", icon: Download },
+  { title: "Copy Prompt", url: "/prompt", icon: ClipboardCopy },
   { title: "Admin Panel", url: "/admin", icon: Shield },
 ];
 
