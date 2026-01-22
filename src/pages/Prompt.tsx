@@ -18,7 +18,7 @@ TECH STACK
 - Backend via Lovable Cloud (database, auth, server functions)
 
 ROUTES
-- /  → Dashboard layout with sidebar
+- /  → App starts directly inside the dashboard interface (no landing page required)
 - /create → Resume Builder (multi-step)
 - /templates → Template picker
 - /score → Resume Score (demo)
@@ -27,7 +27,6 @@ ROUTES
 - /prompt → A page that shows THIS prompt and provides a one-click Copy button
 
 LAYOUT
-- App starts directly inside the dashboard interface (no required landing page).
 - Dashboard layout includes:
   - Collapsible sidebar with nav links: Dashboard, Create Resume, Templates, Resume Score, Export, Admin Panel, Copy Prompt
   - Sticky top bar with app name + theme toggle
@@ -45,16 +44,20 @@ FEATURE: RESUME BUILDER (/create)
 - Support optional photo upload preview (client-side).
 
 FEATURE: TEMPLATES (/templates)
-- Show a list/grid of template names.
-- Selecting a template highlights it and updates “Selected Template” card.
-- Reset returns to default.
+- Templates UI only (do not connect templates to resume preview yet).
+- Show a grid of 20 templates with clear visual preview thumbnails (normal + color styles).
+- Selecting a template highlights it and updates a “Selected Template” card.
+- Provide a Reset action to return to default.
+- Templates list to include a mix like: Classic, Minimal, ATS Pro, Modern, Executive, Serif, Compact, Mono, Timeline, Split; plus color variants like Aurora, Nova, Pulse, Coral, Emerald, Sunset, Indigo, Citrus, Ocean, Rose.
 
 FEATURE: RESUME SCORE (/score)
 - Show demo scoring widgets (overall + ATS compatibility) with progress bars.
 
 FEATURE: EXPORT (/export)
 - Let user choose Manual vs AI Enhanced preview.
-- Provide “Export PDF (A4)” using window.print() and print-friendly styling.
+- Provide a single “Download PDF (A4)” action that downloads a PDF directly.
+- CRITICAL: Do NOT open the browser print dialog. Do NOT use window.print().
+- The user experience must be: click download → file saves as .pdf immediately.
 
 AI ASSISTANT (USER-FACING)
 - Provide an assistant UI (floating) where user types a prompt and receives a short ATS-friendly suggestion.
@@ -102,7 +105,12 @@ UX
 - Theme toggle (light/dark).
 
 DELIVERABLE
-Implement the full UI, routes, backend tables, RLS policies, server functions, and error handling described above.`,
+ Implement the full UI, routes, backend tables, RLS policies, server functions, and error handling described above.
+
+IMPORTANT CONSTRAINTS
+- The /prompt page must only show this plain-text prompt and a one-click Copy button. Do not show code on /prompt.
+- Keep the UI modern, clean, dashboard-first, and consistent in spacing and card patterns.
+`,
     [],
   );
 
