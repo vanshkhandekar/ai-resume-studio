@@ -4,6 +4,7 @@ import { SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { Separator } from "@/components/ui/separator";
 import { AppSidebar } from "@/components/app/AppSidebar";
 import { FloatingAiAssistant } from "@/components/ai/FloatingAiAssistant";
+import { ModeToggle } from "@/components/theme/ModeToggle";
 
 export function DashboardLayout() {
   return (
@@ -15,7 +16,10 @@ export function DashboardLayout() {
           <header className="flex h-12 items-center gap-2 border-b bg-background px-3">
             <SidebarTrigger className="ml-1" />
             <Separator orientation="vertical" className="h-6" />
-            <p className="text-sm text-muted-foreground">AI Resume Builder</p>
+            <p className="text-sm text-muted-foreground">Resume GPT</p>
+            <div className="ml-auto">
+              <ModeToggle />
+            </div>
           </header>
 
           <main className="flex-1 p-6">
