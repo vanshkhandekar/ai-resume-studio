@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { MessageCircle, X } from "lucide-react";
 
 import { Button } from "@/components/ui/button";
@@ -18,6 +18,64 @@ export function FloatingAiAssistant({ context, enabled = true }: FloatingAiAssis
   const [response, setResponse] = useState<string>("");
   const [loading, setLoading] = useState(false);
   const { toast } = useToast();
+
+  const btnSize = 48;
+  const margin = 20;
+  const draggingRef = useRef(false);
+  const dragOffsetRef = useRef<{ x: number; y: number }>({ x: 0, y: 0 });
+
+  const [pos, setPos] = useState<{ x: number; y: number }>(() => {
+    try {
+      const raw = localStorage.getItem("rgpt_ai_pos");
+      if (raw) return JSON.parse(raw);
+    } catch {
+      // ignore
+    }
+    return { x: 0, y: 0 };
+  });
+
+  useEffect(() => {
+    // Place at bottom-right on first mount if not set
+    if (pos.x === 0 && pos.y === 0) {
+      setPos({ x: window.innerWidth - btnSize - margin, y: window.innerHeight - btnSize - margin });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem("rgpt_ai_pos", JSON.stringify(pos));
+    } catch {
+      // ignore
+    }
+  }, [pos]);
+
+  const clamp = (next: { x: number; y: number }) => {
+    const maxX = Math.max(margin, window.innerWidth - btnSize - margin);
+    const maxY = Math.max(margin, window.innerHeight - btnSize - margin);
+    return {
+      x: Math.min(maxX, Math.max(margin, next.x)),
+      y: Math.min(maxY, Math.max(margin, next.y)),
+    };
+  };
+
+  const onPointerDown = (e: React.PointerEvent) => {
+    draggingRef.current = true;
+    const startX = e.clientX;
+    const startY = e.clientY;
+    dragOffsetRef.current = { x: startX - pos.x, y: startY - pos.y };
+    (e.currentTarget as HTMLElement).setPointerCapture?.(e.pointerId);
+  };
+
+  const onPointerMove = (e: React.PointerEvent) => {
+    if (!draggingRef.current) return;
+    const next = clamp({ x: e.clientX - dragOffsetRef.current.x, y: e.clientY - dragOffsetRef.current.y });
+    setPos(next);
+  };
+
+  const onPointerUp = () => {
+    draggingRef.current = false;
+  };
 
   const placeholder = useMemo(
     () =>
@@ -61,17 +119,29 @@ export function FloatingAiAssistant({ context, enabled = true }: FloatingAiAssis
 
   return (
     <>
-      <Button
-        onClick={() => setOpen((v) => !v)}
-        className="fixed bottom-6 right-6 h-14 w-14 rounded-full shadow-lg"
-        size="icon"
-        aria-label={open ? "Close AI assistant" : "Open AI assistant"}
+      <div
+        className="fixed z-50"
+        style={{ left: pos.x, top: pos.y }}
+        onPointerMove={onPointerMove}
+        onPointerUp={onPointerUp}
+        onPointerCancel={onPointerUp}
       >
-        {open ? <X className="h-6 w-6" /> : <MessageCircle className="h-6 w-6" />}
-      </Button>
+        <Button
+          onPointerDown={onPointerDown}
+          onClick={() => setOpen((v) => !v)}
+          className="h-12 w-12 rounded-full shadow-[0_0_0_1px_hsl(var(--border)),0_20px_60px_-20px_hsl(var(--primary)/0.55)]"
+          size="icon"
+          aria-label={open ? "Close AI assistant" : "Open AI assistant"}
+        >
+          {open ? <X className="h-5 w-5" /> : <MessageCircle className="h-5 w-5" />}
+        </Button>
+      </div>
 
       {open && (
-        <Card className="fixed bottom-24 right-6 w-[22rem] shadow-xl">
+        <Card
+          className="fixed w-[22rem] shadow-xl"
+          style={{ left: Math.min(pos.x, window.innerWidth - 22 * 16 - margin), top: Math.max(margin, pos.y - 320) }}
+        >
           <CardHeader className="pb-3">
             <CardTitle className="text-base">AI Resume Assistant</CardTitle>
           </CardHeader>
