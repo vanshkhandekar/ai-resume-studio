@@ -6,10 +6,10 @@ import { Textarea } from "@/components/ui/textarea";
 export default function PromptPage() {
   const prompt = useMemo(
     () =>
-      `Create a web application called “Resume GPT — AI Resume Builder” with these requirements.
+      `Create a web application called “ResumeGPT — AI Resume Builder” with these requirements.
 
 GOAL
-Build a dashboard-first resume builder with an Admin Panel that controls global AI behavior and API key management.
+Build a resume builder with a dashboard experience and an admin panel that controls global AI behavior and API key management.
 
 TECH STACK
 - React + Vite + TypeScript
@@ -17,21 +17,38 @@ TECH STACK
 - Routing with react-router-dom
 - Backend via Lovable Cloud (database, auth, server functions)
 
+BRANDING + BASIC INFO (MUST BE VISIBLE AT TOP)
+- App name everywhere: ResumeGPT
+- Landing page and header must clearly show (immediately, not hidden):
+  - College: Janaprabha College, Ramtek
+  - Class: BCA 3rd Year
+  - Group Members: Vansh Khandekar, Shubham Chandekar, Pranay Mende
+
 ROUTES
-- /  → App starts directly inside the dashboard interface (no landing page required)
+- / → Public landing page (academic project report style)
+- /dashboard → Dashboard home
 - /create → Resume Builder (multi-step)
 - /templates → Template picker
 - /score → Resume Score (demo)
-- /export → Export/print page
+- /export → Export/Download page
 - /admin → Admin Panel (protected)
 - /prompt → A page that shows THIS prompt and provides a one-click Copy button
 
-LAYOUT
-- Dashboard layout includes:
-  - Collapsible sidebar with nav links: Dashboard, Create Resume, Templates, Resume Score, Export, Admin Panel, Copy Prompt
-  - Sticky top bar with app name + theme toggle
-  - Main area renders routed pages
-  - Optional floating AI assistant only inside dashboard
+PUBLIC LANDING PAGE (/)
+- Design the landing page like a professional academic report.
+- Hero must show ResumeGPT + short subtitle.
+- Show the basic info strip (college/class/members) near the top (always visible).
+- Include “Build Resume” CTA linking to /create.
+- Include an accordion report section:
+  - Sections: Project Details, Abstract, Introduction, Objectives, Process/Workflow, Development Tools, Conclusion
+  - Only one section opens at a time
+  - Smooth animations and clear expand/collapse affordance
+
+DASHBOARD LAYOUT
+- Collapsible sidebar with nav links: Dashboard, Create Resume, Templates, Resume Score, Export, Admin Panel, Copy Prompt
+- Sticky top bar with app name + theme toggle
+- Main area renders routed pages
+- Optional floating AI assistant only inside dashboard
 
 FEATURE: RESUME BUILDER (/create)
 - Multi-step flow: profile, education, projects, skills, experience, certifications, preview.
@@ -48,7 +65,9 @@ FEATURE: TEMPLATES (/templates)
 - Show a grid of 20 templates with clear visual preview thumbnails (normal + color styles).
 - Selecting a template highlights it and updates a “Selected Template” card.
 - Provide a Reset action to return to default.
-- Templates list to include a mix like: Classic, Minimal, ATS Pro, Modern, Executive, Serif, Compact, Mono, Timeline, Split; plus color variants like Aurora, Nova, Pulse, Coral, Emerald, Sunset, Indigo, Citrus, Ocean, Rose.
+- Templates list to include a mix like:
+  Classic, Minimal, ATS Pro, Modern, Executive, Serif, Compact, Mono, Timeline, Split
+  Aurora, Nova, Pulse, Coral, Emerald, Sunset, Indigo, Citrus, Ocean, Rose
 
 FEATURE: RESUME SCORE (/score)
 - Show demo scoring widgets (overall + ATS compatibility) with progress bars.
@@ -105,11 +124,11 @@ UX
 - Theme toggle (light/dark).
 
 DELIVERABLE
- Implement the full UI, routes, backend tables, RLS policies, server functions, and error handling described above.
+Implement the full UI, routes, backend tables, RLS policies, server functions, and error handling described above.
 
 IMPORTANT CONSTRAINTS
 - The /prompt page must only show this plain-text prompt and a one-click Copy button. Do not show code on /prompt.
-- Keep the UI modern, clean, dashboard-first, and consistent in spacing and card patterns.
+- Do not include any source code in the /prompt page content.
 `,
     [],
   );
